@@ -1,0 +1,25 @@
+services:
+  simulation-engine:
+    build:
+      context: ./server
+    container_name: kestrel-sim-engine
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  tactical-ui:
+    image: node:20-alpine
+    container_name: kestrel-tactical-ui
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /client/node_modules
+    environment:
+      - VITE_WS_URL=ws://localhost:8000/ws/telemetry
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - simulation-engine
